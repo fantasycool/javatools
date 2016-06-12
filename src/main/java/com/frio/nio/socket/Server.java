@@ -28,17 +28,23 @@ public class Server {
             sc.register(selectionKey.selector(), SelectionKey.OP_READ|SelectionKey.OP_WRITE);
         }else if(selectionKey.isReadable()){
             SocketChannel sc = (SocketChannel) selectionKey.channel();
-            if(!sc.isConnected()){
+            if(!sc.isOpen()){
                 System.out.println("connection is closed,so we do close operation");
                 sc.close();
                 return;
             }
             readBuffer.clear();
-            sc.read(readBuffer);
+            try {
+                sc.read(readBuffer);
+            }catch(IOException e){
+                System.out.println("connection closed, so we close SocketChannel");
+                sc.close();
+                return;
+            }
             System.out.println(new String(readBuffer.array()));
             writeBuffer.clear();
             readBuffer.flip();
-            writeBuffer.put(readBuffer.array());
+            writeBuffer.put(new String(readBuffer.array()).toUpperCase().getBytes());
             selectionKey.interestOps(SelectionKey.OP_WRITE);
         }else if(selectionKey.isWritable()){
             writeBuffer.flip();
