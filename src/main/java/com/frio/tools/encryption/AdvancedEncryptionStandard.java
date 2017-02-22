@@ -1,14 +1,9 @@
-package com.frio.encryption;
+package com.frio.tools.encryption;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
-import java.util.Date;
-import javax.crypto.Cipher;
-import javax.crypto.spec.SecretKeySpec;
-import com.alibaba.fastjson.JSON;
+
 import org.apache.commons.codec.binary.Base64;
-
-import java.util.*;
 
 
 public class AdvancedEncryptionStandard {

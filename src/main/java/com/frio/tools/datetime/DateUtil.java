@@ -1,4 +1,4 @@
-package com.frio.datetime;
+package com.frio.tools.datetime;
 
 import java.text.DateFormat;
 import java.text.ParseException;

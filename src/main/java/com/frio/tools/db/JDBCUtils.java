@@ -1,4 +1,4 @@
-package com.frio.db;
+package com.frio.tools.db;
 
 import com.sun.org.apache.xerces.internal.impl.dv.util.HexBin;
 import org.slf4j.Logger;

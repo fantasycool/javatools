@@ -1,4 +1,4 @@
-package com.frio.checker;
+package com.frio.tools.checker;
 
 import org.apache.commons.lang3.StringUtils;
 

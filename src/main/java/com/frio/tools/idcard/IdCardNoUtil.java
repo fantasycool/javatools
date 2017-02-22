@@ -1,4 +1,4 @@
-package com.frio.idcard;
+package com.frio.tools.idcard;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;

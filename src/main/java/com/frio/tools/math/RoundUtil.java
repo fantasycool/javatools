@@ -1,4 +1,4 @@
-package com.frio.math;
+package com.frio.tools.math;
 
 /**
  * Created by frio on 17/2/22.
