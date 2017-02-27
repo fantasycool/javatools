@@ -96,24 +96,14 @@ public abstract class JDBCUtils {
         StringBuilder sb = new StringBuilder();
         sb.append("update ").append(tableName).append(" ").append("set ");
         List<Object> args = new ArrayList<Object>();
-        for (int i = 0; i < parameters.keySet().size(); i++) {
-            Object v = parameters.get(parameters.keySet().toArray()[i]);
-            if (v != null) {
-                sb.append(parameters.keySet().toArray()[i]).append("=").append("?");
-                args.add(v);
-                sb.append(",");
-            }
-        }
+        updateFieldAppend(parameters, sb, args);
         sb = new StringBuilder(sb.toString().substring(0, sb.length() - 1));
         sb.append(" where ").append(idName).append("=").append(id);
         LOG.info("executeUpdateById, sql:[{}]", sb.toString());
         return executeUpdate(dataSource, sb.toString(), args);
     }
 
-    public static int executeUpdateById(Connection conn, String tableName, Map<String, Object> parameters, String idName, long id) throws SQLException {
-        StringBuilder sb = new StringBuilder();
-        sb.append("update ").append(tableName).append(" ").append("set ");
-        List<Object> args = new ArrayList<Object>();
+    private static void updateFieldAppend(Map<String, Object> parameters, StringBuilder sb, List<Object> args) {
         for (int i = 0; i < parameters.keySet().size(); i++) {
             Object v = parameters.get(parameters.keySet().toArray()[i]);
             if (v != null) {
@@ -122,6 +112,13 @@ public abstract class JDBCUtils {
                 sb.append(",");
             }
         }
+    }
+
+    public static int executeUpdateById(Connection conn, String tableName, Map<String, Object> parameters, String idName, long id) throws SQLException {
+        StringBuilder sb = new StringBuilder();
+        sb.append("update ").append(tableName).append(" ").append("set ");
+        List<Object> args = new ArrayList<Object>();
+        updateFieldAppend(parameters, sb, args);
         sb = new StringBuilder(sb.toString().substring(0, sb.length() - 1));
         sb.append(" where ").append(idName).append("=").append(id);
         LOG.info("executeUploadById sql is:[{}]", sb.toString());
