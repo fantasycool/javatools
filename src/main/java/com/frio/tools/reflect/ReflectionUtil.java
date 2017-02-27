@@ -39,11 +39,12 @@ public class ReflectionUtil {
 
     /**
      * 根据属性名称遍历获取bean中对应的value
+     *
      * @return
      */
-    public static Object getValueByNameFromBean(String name, Object bean){
+    public static Object getValueByNameFromBean(String name, Object bean) {
         Checker.checkNull(name, bean);
-        if(name.contains("_")){
+        if (name.contains("_")) {
             name = getFieldNameByColumnName(name);
         }
         Class<?> c = bean.getClass();
@@ -64,59 +65,83 @@ public class ReflectionUtil {
 
     /**
      * 拷贝m的属性到Bean的属性
+     *
      * @param m
      * @param bean
      */
-    public static void cloneMapValueToBean(Map<String, Object> m, Object bean){
-        if(m == null){
+    public static void cloneMapValueToBean(Map<String, Object> m, Object bean) {
+        cloneMapValueToBean(m, bean, null);
+    }
+
+    /**
+     * 递归赋值
+     *
+     * @param m
+     * @param bean
+     * @param childDescriptor
+     */
+    public static void cloneMapValueToBean(Map<String, Object> m, Object bean, Map<String, Class> childDescriptor) {
+        if (m == null) {
             throw new IllegalArgumentException();
         }
         List<Field> fields = getPrivateFields(bean.getClass());
         Map<String, Field> mapper = new HashMap<>();
-        for(Field f : fields){
+        for (Field f : fields) {
             mapper.put(f.getName(), f);
         }
-        for(Map.Entry<String, Object> entry : m.entrySet()){
+        for (Map.Entry<String, Object> entry : m.entrySet()) {
             String key = entry.getKey().contains("_") ?
                     ReflectionUtil.getFieldNameByColumnName(entry.getKey()) :
                     entry.getKey();
             Object value = entry.getValue();
-            if(mapper.get(key) == null || value == null){
+            if (mapper.get(key) == null || value == null) {
                 continue;
             }
             Field field = mapper.get(key);
             try {
                 field.setAccessible(true);
-                if(field.getType().equals(java.util.Date.class) && (value instanceof Long)) {
+                if (field.getType().equals(java.util.Date.class) && (value instanceof Long)) {
                     field.set(bean, new java.util.Date((long) value));
-                }else if(field.getType().equals(java.util.Date.class) && (value instanceof String)) {
+                } else if (field.getType().equals(java.util.Date.class) && (value instanceof String)) {
                     field.set(bean, DateUtil.parse(value.toString(), "yyyy-MM-dd HH:mm:ss"));
-                }else if(field.getType().equals(java.lang.Integer.class)) {
+                } else if (field.getType().equals(java.lang.Integer.class)) {
                     field.set(bean, Integer.valueOf(value.toString()));
-                }else if((field.getType().equals(java.lang.Double.class) || field.getType().equals(double.class))){
+                } else if ((field.getType().equals(java.lang.Double.class) || field.getType().equals(double.class))) {
                     field.set(bean, Double.valueOf(value.toString()));
-                }else if(field.getType().equals(java.lang.Float.class) || field.getType().equals(float.class)) {
+                } else if (field.getType().equals(java.lang.Float.class) || field.getType().equals(float.class)) {
                     field.set(bean, Float.valueOf(value.toString()));
-                }else if(field.getType().isAssignableFrom(Collection.class) && entry.getValue() != null){
-                    recursionSetChilds(entry, field);
-                }else{
+                } else if (null != childDescriptor && field.getType().isAssignableFrom(Collection.class) && entry.getValue() != null) {
+                    recursionSetChilds(entry, bean, field, childDescriptor);
+                } else {
                     field.set(bean, value);
                 }
             } catch (IllegalAccessException e) {
                 LOG.error("set value, fieldName:[{}]", e, field.getName());
-            }catch(Exception e){
+            } catch (Exception e) {
                 LOG.error("转型有问题, field name is:[{}]", e, field.getName());
             }
         }
     }
 
-    private static void recursionSetChilds(Map.Entry<String, Object> entry, Field field) throws InstantiationException, IllegalAccessException, java.lang.reflect.InvocationTargetException, NoSuchMethodException {
+    private static void recursionSetChilds(Map.Entry<String, Object> entry, Object bean,
+                                           Field field, Map<String, Class> childDescriptor) throws InstantiationException, IllegalAccessException, java.lang.reflect.InvocationTargetException, NoSuchMethodException {
         Collection<Object> childs = (Collection<Object>) entry.getValue();
-        for(Object child : childs){
-            Map<String, Object> childValue = (Map<String, Object>) child;
-            Object childBean = field.getType().getConstructor().newInstance();
-            field.set(childValue, childBean);
+        Collection result;
+        if (field.getClass().equals(List.class)) {
+            result = new ArrayList<>();
+        } else if (field.getClass().equals(Set.class)) {
+            result = new HashSet<>();
+        } else {
+            return;
         }
+        for (Object child : childs) {
+            Map<String, Object> childValue = (Map<String, Object>) child;
+            Class childClass = childDescriptor.get(field.getName());
+            Object childBean = childClass.getConstructor().newInstance();
+            ReflectionUtil.cloneMapValueToBean(childValue, childBean, null);
+            result.add(childBean);
+        }
+        field.set(bean, result);
     }
 
     /**
@@ -140,15 +165,15 @@ public class ReflectionUtil {
         return stringBuilder.toString();
     }
 
-    public static String getFieldNameByColumnName(String columnName){
+    public static String getFieldNameByColumnName(String columnName) {
         String[] columns = columnName.split("_");
         StringBuilder result = new StringBuilder();
-        for(int i = 0; i < columns.length; i ++){
+        for (int i = 0; i < columns.length; i++) {
             char[] c = columns[i].toCharArray();
-            if(i != 0){
+            if (i != 0) {
                 c[0] = Character.toUpperCase(c[0]);
                 result.append(c);
-            }else{
+            } else {
                 result.append(c);
             }
         }
