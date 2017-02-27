@@ -19,8 +19,4 @@ public class ExceptionPrinter {
         t.printStackTrace(printWriter);
         return stringWriter.toString();
     }
-
-    public static void main(String[] args) {
-        System.out.println(getExceptionMessage(new RuntimeException()));
-    }
 }

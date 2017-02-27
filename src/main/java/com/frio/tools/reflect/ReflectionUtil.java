@@ -1,5 +1,8 @@
 package com.frio.tools.reflect;
 
+import com.frio.tools.checker.Checker;
+import com.frio.tools.datetime.DateUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,6 +38,31 @@ public class ReflectionUtil {
     }
 
     /**
+     * 根据属性名称遍历获取bean中对应的value
+     * @return
+     */
+    public static Object getValueByNameFromBean(String name, Object bean){
+        Checker.checkNull(name, bean);
+        if(name.contains("_")){
+            name = getFieldNameByColumnName(name);
+        }
+        Class<?> c = bean.getClass();
+        for (Field field : c.getDeclaredFields()) {
+            if (Modifier.isPrivate(field.getModifiers())) {
+                field.setAccessible(true);
+                try {
+                    if (field.getName().equals(name)) {
+                        return field.get(bean);
+                    }
+                } catch (IllegalAccessException e) {
+                    continue;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
      * 拷贝m的属性到Bean的属性
      * @param m
      * @param bean
@@ -49,7 +77,9 @@ public class ReflectionUtil {
             mapper.put(f.getName(), f);
         }
         for(Map.Entry<String, Object> entry : m.entrySet()){
-            String key = ReflectionUtil.getFieldNameByColumnName(entry.getKey());
+            String key = entry.getKey().contains("_") ?
+                    ReflectionUtil.getFieldNameByColumnName(entry.getKey()) :
+                    entry.getKey();
             Object value = entry.getValue();
             if(mapper.get(key) == null || value == null){
                 continue;
@@ -60,25 +90,32 @@ public class ReflectionUtil {
                 if(field.getType().equals(java.util.Date.class) && (value instanceof Long)) {
                     field.set(bean, new java.util.Date((long) value));
                 }else if(field.getType().equals(java.util.Date.class) && (value instanceof String)) {
-                    SimpleDateFormat sf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                    Date d = sf.parse(value.toString());
-                    field.set(bean, d);
+                    field.set(bean, DateUtil.parse(value.toString(), "yyyy-MM-dd HH:mm:ss"));
                 }else if(field.getType().equals(java.lang.Integer.class)) {
                     field.set(bean, Integer.valueOf(value.toString()));
                 }else if((field.getType().equals(java.lang.Double.class) || field.getType().equals(double.class))){
                     field.set(bean, Double.valueOf(value.toString()));
-                }else if(field.getType().equals(java.lang.Float.class) || field.getType().equals(float.class)){
+                }else if(field.getType().equals(java.lang.Float.class) || field.getType().equals(float.class)) {
                     field.set(bean, Float.valueOf(value.toString()));
+                }else if(field.getType().isAssignableFrom(Collection.class) && entry.getValue() != null){
+                    recursionSetChilds(entry, field);
                 }else{
                     field.set(bean, value);
                 }
             } catch (IllegalAccessException e) {
                 LOG.error("set value, fieldName:[{}]", e, field.getName());
-            } catch (ParseException e) {
-                LOG.error("data parse failed, fieldName:[{}]", e, field.getName());
             }catch(Exception e){
                 LOG.error("转型有问题, field name is:[{}]", e, field.getName());
             }
+        }
+    }
+
+    private static void recursionSetChilds(Map.Entry<String, Object> entry, Field field) throws InstantiationException, IllegalAccessException, java.lang.reflect.InvocationTargetException, NoSuchMethodException {
+        Collection<Object> childs = (Collection<Object>) entry.getValue();
+        for(Object child : childs){
+            Map<String, Object> childValue = (Map<String, Object>) child;
+            Object childBean = field.getType().getConstructor().newInstance();
+            field.set(childValue, childBean);
         }
     }
 

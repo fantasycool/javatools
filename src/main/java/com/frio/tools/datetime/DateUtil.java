@@ -41,7 +41,6 @@ public abstract class DateUtil {
             format = new SimpleDateFormat(pattern);
             formatMap.put(pattern, format);
         }
-
         return format;
     }
 
