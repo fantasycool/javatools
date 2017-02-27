@@ -101,11 +101,10 @@ public abstract class JDBCUtils {
             if (v != null) {
                 sb.append(parameters.keySet().toArray()[i]).append("=").append("?");
                 args.add(v);
-                if (i < (parameters.keySet().size() - 1)) {
-                    sb.append(",");
-                }
+                sb.append(",");
             }
         }
+        sb = new StringBuilder(sb.toString().substring(0, sb.length() - 1));
         sb.append(" where ").append(idName).append("=").append(id);
         LOG.info("executeUpdateById, sql:[{}]", sb.toString());
         return executeUpdate(dataSource, sb.toString(), args);
@@ -120,11 +119,10 @@ public abstract class JDBCUtils {
             if (v != null) {
                 sb.append(parameters.keySet().toArray()[i]).append("=").append("?");
                 args.add(v);
-                if (i < parameters.keySet().size() - 1) {
-                    sb.append(",");
-                }
+                sb.append(",");
             }
         }
+        sb = new StringBuilder(sb.toString().substring(0, sb.length() - 1));
         sb.append(" where ").append(idName).append("=").append(id);
         LOG.info("executeUploadById sql is:[{}]", sb.toString());
         System.out.println(sb.toString());
