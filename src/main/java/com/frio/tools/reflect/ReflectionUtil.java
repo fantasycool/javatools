@@ -124,9 +124,9 @@ public class ReflectionUtil {
                                            Field field, Map<String, Class> childDescriptor) throws InstantiationException, IllegalAccessException, java.lang.reflect.InvocationTargetException, NoSuchMethodException {
         Collection<Object> childs = (Collection<Object>) entry.getValue();
         Collection result;
-        if (field.getClass().equals(List.class)) {
+        if (field.getType().equals(List.class)) {
             result = new ArrayList<>();
-        } else if (field.getClass().equals(Set.class)) {
+        } else if (field.getType().equals(Set.class)) {
             result = new HashSet<>();
         } else {
             return;
