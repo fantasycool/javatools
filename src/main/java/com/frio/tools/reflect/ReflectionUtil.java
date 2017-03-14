@@ -88,7 +88,7 @@ public class ReflectionUtil {
         }
         for (Map.Entry<String, Object> entry : m.entrySet()) {
             String key = entry.getKey().contains("_") ?
-                    ReflectionUtil.getFieldNameByColumnName(entry.getKey()) :
+                    ReflectionUtil.getFieldNameByColumnName(entry.getKey().toLowerCase()) :
                     entry.getKey();
             Object value = entry.getValue();
             if (mapper.get(key) == null || value == null) {
@@ -101,6 +101,8 @@ public class ReflectionUtil {
                     field.set(bean, new java.util.Date((long) value));
                 } else if (field.getType().equals(java.util.Date.class) && (value instanceof String)) {
                     field.set(bean, DateUtil.parse(value.toString(), "yyyy-MM-dd HH:mm:ss"));
+                } else if(field.getType().equals(Long.class) || field.getType().equals(long.class)){
+                    field.set(bean, Long.valueOf(value.toString()));
                 } else if (field.getType().equals(java.lang.Integer.class)) {
                     field.set(bean, Integer.valueOf(value.toString()));
                 } else if ((field.getType().equals(java.lang.Double.class) || field.getType().equals(double.class))) {
