@@ -103,6 +103,24 @@ public abstract class JDBCUtils {
         return executeUpdate(dataSource, sb.toString(), args);
     }
 
+    /**
+     * get result by id
+     * @param dataSource
+     * @param id
+     * @return
+     */
+    public static Map<String, Object> getById(DataSource dataSource, String tableName, Long id){
+        List<Object> args = new ArrayList<>();
+        args.add(id);
+        try{
+            List<Map<String, Object>> result =
+                    JDBCUtils.executeQuery(dataSource, "select * from " + tableName + " where id=?", args);
+            return result != null && result.size() > 0 ? result.get(0) : null;
+        }catch(Exception e){
+            throw new RuntimeException(e);
+        }
+    }
+
     private static void updateFieldAppend(Map<String, Object> parameters, StringBuilder sb, List<Object> args) {
         for (int i = 0; i < parameters.keySet().size(); i++) {
             Object v = parameters.get(parameters.keySet().toArray()[i]);
