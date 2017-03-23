@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.util.*;
 
@@ -119,6 +120,22 @@ public class ReflectionUtil {
             } catch (Exception e) {
                 LOG.error("转型有问题, field name is:[{}]", e, field.getName());
             }
+        }
+    }
+
+    /**
+     * clone Map -> Bean without creating bean first!
+     * @param map   src map data
+     * @param c     src class data
+     */
+    public static Object cloneMapValueToBean(Map<String, Object> map, Class c){
+        try {
+            Object childBean = c.getConstructor().newInstance();
+            cloneMapValueToBean(map, childBean);
+            return childBean;
+        } catch (Exception e) {
+            LOG.error("Init bean met an exception", e);
+            throw new RuntimeException(e);
         }
     }
 
