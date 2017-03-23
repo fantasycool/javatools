@@ -127,7 +127,7 @@ public class ReflectionUtil {
      * @param src
      * @param dest
      */
-    public void copyBeanProperty(Object src, Object dest){
+    public static void copyBeanProperty(Object src, Object dest){
         Checker.checkNull(src, dest);
         List<Field> srcFields = getPrivateFields(src.getClass());
         try {
