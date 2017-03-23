@@ -122,6 +122,33 @@ public class ReflectionUtil {
         }
     }
 
+    /**
+     * bean attributes copy
+     * @param src
+     * @param dest
+     */
+    public void copyBeanProperty(Object src, Object dest){
+        Checker.checkNull(src, dest);
+        List<Field> srcFields = getPrivateFields(src.getClass());
+        try {
+            Map<String, Field> destMapperFields = new HashMap<>();
+            for (Field f : getPrivateFields(dest.getClass())) {
+                destMapperFields.put(f.getName(), f);
+            }
+            for (Field srcField : srcFields) {
+                String srcFieldName = srcField.getName();
+                Field destField = destMapperFields.get(srcFieldName);
+                if(destField != null){
+                    if (destField.getClass().equals(srcField.getClass())) {
+                        destField.set(dest, srcField.get(src));
+                    }
+                }
+            }
+        }catch(Exception e){
+            LOG.error("copyBeanProperty have met an exception", e);
+        }
+    }
+
     private static void recursionSetChilds(Map.Entry<String, Object> entry, Object bean,
                                            Field field, Map<String, Class> childDescriptor) throws InstantiationException, IllegalAccessException, java.lang.reflect.InvocationTargetException, NoSuchMethodException {
         Collection<Object> childs = (Collection<Object>) entry.getValue();
