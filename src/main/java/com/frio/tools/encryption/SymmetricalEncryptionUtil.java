@@ -59,12 +59,19 @@ public class SymmetricalEncryptionUtil {
             random.nextBytes(iv);
             IvParameterSpec ivParameterSpec = new IvParameterSpec(iv);
             // init cipher
-            Cipher cipher = getCipher(Cipher.ENCRYPT_MODE, DEFAULT_ALGORITHM, keys, ivParameterSpec);
-            byte[] encryptedBytes = cipher.doFinal(plainText.getBytes());
-            byte[] resultData = new byte[encryptedBytes.length + 16];
-            System.arraycopy(encryptedBytes, 0, resultData, 0, encryptedBytes.length);
-            System.arraycopy(ivParameterSpec.getIV(), 0, resultData, encryptedBytes.length, ivParameterSpec.getIV().length);
-            return Base64.encodeBase64String(resultData);
+
+            if(algorithm.equals("AES") || algorithm.contains("ECB")){
+                Cipher cipher = getCipher(Cipher.ENCRYPT_MODE, algorithm, keys, null);
+                byte[] encryptedBytes = cipher.doFinal(plainText.getBytes());
+                return Base64.encodeBase64String(encryptedBytes);
+            }else{
+                Cipher cipher = getCipher(Cipher.ENCRYPT_MODE, algorithm, keys, ivParameterSpec);
+                byte[] encryptedBytes = cipher.doFinal(plainText.getBytes());
+                byte[] resultData = new byte[encryptedBytes.length + 16];
+                System.arraycopy(encryptedBytes, 0, resultData, 0, encryptedBytes.length);
+                System.arraycopy(ivParameterSpec.getIV(), 0, resultData, encryptedBytes.length, ivParameterSpec.getIV().length);
+                return Base64.encodeBase64String(resultData);
+            }
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -88,9 +95,14 @@ public class SymmetricalEncryptionUtil {
             algorithm = DEFAULT_ALGORITHM;
         }
         byte[] encryptedBytes = Base64.decodeBase64(encrypted);
-        IvParameterSpec ivParameterSpec = new IvParameterSpec(encryptedBytes, encryptedBytes.length - 16, 16);
-        Cipher cipher = getCipher(Cipher.DECRYPT_MODE, DEFAULT_ALGORITHM, key, ivParameterSpec);
-        return new String(cipher.doFinal(encryptedBytes, 0, encryptedBytes.length - 16));
+        if(algorithm.equals("AES") || algorithm.contains("ECB")){
+            Cipher cipher = getCipher(Cipher.DECRYPT_MODE, algorithm, key, null);
+            return new String(cipher.doFinal(encryptedBytes));
+        }else{
+            IvParameterSpec ivParameterSpec = new IvParameterSpec(encryptedBytes, encryptedBytes.length - 16, 16);
+            Cipher cipher = getCipher(Cipher.DECRYPT_MODE, algorithm, key, ivParameterSpec);
+            return new String(cipher.doFinal(encryptedBytes, 0, encryptedBytes.length - 16));
+        }
     }
 
     private static Cipher getCipher(int cipherMode, String encryptionAlgorithm,
@@ -99,8 +111,13 @@ public class SymmetricalEncryptionUtil {
         String algorithmType = encryptionAlgorithm.split("/")[0];
         SecretKeySpec keySpecification = new SecretKeySpec(
                 key, algorithmType);
-        Cipher cipher = Cipher.getInstance(DEFAULT_ALGORITHM);
-        cipher.init(cipherMode, keySpecification, ivParameterSpec);
+        Cipher cipher = Cipher.getInstance(encryptionAlgorithm);
+        // ECB don't need IV, it's not chain encryption
+        if(null == ivParameterSpec){
+            cipher.init(cipherMode, keySpecification);
+        }else{
+            cipher.init(cipherMode, keySpecification, ivParameterSpec);
+        }
         return cipher;
     }
 
@@ -124,9 +141,9 @@ public class SymmetricalEncryptionUtil {
     public static void main(String[] args){
         try {
             String privateKey = generatePrivateKeyFor(128, "AES");
-            String encryptedResult = encryptData("这是一个HelloWorld,哈哈!", Base64.decodeBase64(privateKey), DEFAULT_ALGORITHM);
+            String encryptedResult = encryptData("aaa", Base64.decodeBase64(privateKey), "AES");
             System.out.println(encryptedResult);
-            System.out.println(decryptData(encryptedResult, Base64.decodeBase64(privateKey), DEFAULT_ALGORITHM));
+            System.out.println(decryptData(encryptedResult, Base64.decodeBase64(privateKey), "AES"));
         }catch(Exception e){
             e.printStackTrace();
         }
