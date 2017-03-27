@@ -156,8 +156,8 @@ public class ReflectionUtil {
                 String srcFieldName = srcField.getName();
                 Field destField = destMapperFields.get(srcFieldName);
                 srcField.setAccessible(true);
-                destField.setAccessible(true);
                 if(destField != null){
+                    destField.setAccessible(true);
                     if (destField.getClass().equals(srcField.getClass())) {
                         destField.set(dest, srcField.get(src));
                     }
