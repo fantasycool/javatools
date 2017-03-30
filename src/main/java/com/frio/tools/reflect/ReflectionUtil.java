@@ -71,6 +71,7 @@ public class ReflectionUtil {
         cloneMapValueToBean(m, bean, null);
     }
 
+
     /**
      * 递归赋值
      *
@@ -128,9 +129,9 @@ public class ReflectionUtil {
      * @param map   src map data
      * @param c     src class data
      */
-    public static Object cloneMapValueToBean(Map<String, Object> map, Class c){
+    public static <T> T cloneMapValueToBean(Map<String, Object> map, Class<T> c){
         try {
-            Object childBean = c.getConstructor().newInstance();
+            T childBean = c.getConstructor().newInstance();
             cloneMapValueToBean(map, childBean);
             return childBean;
         } catch (Exception e) {
