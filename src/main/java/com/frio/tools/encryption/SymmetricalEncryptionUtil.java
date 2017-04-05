@@ -53,18 +53,17 @@ public class SymmetricalEncryptionUtil {
             algorithm = DEFAULT_ALGORITHM;
         }
         try {
-            // generate iv
-            SecureRandom random = new SecureRandom();
-            byte[] iv = new byte[16];
-            random.nextBytes(iv);
-            IvParameterSpec ivParameterSpec = new IvParameterSpec(iv);
             // init cipher
-
             if(algorithm.equals("AES") || algorithm.contains("ECB")){
                 Cipher cipher = getCipher(Cipher.ENCRYPT_MODE, algorithm, keys, null);
                 byte[] encryptedBytes = cipher.doFinal(plainText.getBytes());
                 return Base64.encodeBase64String(encryptedBytes);
             }else{
+                // generate iv
+                SecureRandom random = new SecureRandom();
+                byte[] iv = new byte[16];
+                random.nextBytes(iv);
+                IvParameterSpec ivParameterSpec = new IvParameterSpec(iv);
                 Cipher cipher = getCipher(Cipher.ENCRYPT_MODE, algorithm, keys, ivParameterSpec);
                 byte[] encryptedBytes = cipher.doFinal(plainText.getBytes());
                 byte[] resultData = new byte[encryptedBytes.length + 16];
