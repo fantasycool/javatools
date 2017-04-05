@@ -54,7 +54,7 @@ public class SymmetricalEncryptionUtil {
         }
         try {
             // generate iv
-            SecureRandom random = SecureRandom.getInstanceStrong();
+            SecureRandom random = new SecureRandom();
             byte[] iv = new byte[16];
             random.nextBytes(iv);
             IvParameterSpec ivParameterSpec = new IvParameterSpec(iv);
