@@ -113,6 +113,8 @@ public class ReflectionUtil {
                     field.set(bean, Float.valueOf(value.toString()));
                 } else if (null != childDescriptor && Collection.class.isAssignableFrom(field.getType()) && entry.getValue() != null) {
                     recursionSetChilds(entry, bean, field, childDescriptor);
+                } else if(field.getType().equals(java.lang.Integer.class) && (value instanceof Boolean)){
+                    field.set(bean, (boolean)value ? 1 : 0);
                 } else {
                     field.set(bean, value);
                 }
