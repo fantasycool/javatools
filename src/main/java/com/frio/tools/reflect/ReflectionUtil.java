@@ -174,7 +174,7 @@ public class ReflectionUtil {
         List<Field> srcFields = getPojoFields(src.getClass());
         try {
             Map<String, Field> destMapperFields = new HashMap<>();
-            for (Field f : getPrivateFields(dest.getClass())) {
+            for (Field f : getPojoFields(dest.getClass())) {
                 destMapperFields.put(f.getName(), f);
             }
             for (Field srcField : srcFields) {
