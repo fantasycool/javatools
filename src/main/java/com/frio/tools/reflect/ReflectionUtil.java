@@ -6,7 +6,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.util.*;
 
@@ -28,11 +27,32 @@ public class ReflectionUtil {
         Field[] fields = theClass.getDeclaredFields();
 
         for (Field field : fields) {
-            if (Modifier.isPrivate(field.getModifiers())) {
+            if (Modifier.isPrivate(field.getModifiers()) || Modifier.isProtected(field.getModifiers())) {
                 privateFields.add(field);
             }
         }
         return privateFields;
+    }
+
+    /**
+     * get all the private all protected fields from child or parent class
+     *
+     * @param cls
+     * @return
+     */
+    public static List<Field> getPojoFields(Class cls) {
+        List<Field> resultFields = new ArrayList<>();
+        for(Field field : cls.getDeclaredFields()){
+            if (Modifier.isPrivate(field.getModifiers()) || Modifier.isProtected(field.getModifiers())) {
+                resultFields.add(field);
+            }
+        }
+        for(Field field : cls.getSuperclass().getDeclaredFields()){
+            if (Modifier.isPrivate(field.getModifiers()) || Modifier.isProtected(field.getModifiers())) {
+                resultFields.add(field);
+            }
+        }
+        return resultFields;
     }
 
     /**
@@ -83,10 +103,10 @@ public class ReflectionUtil {
         if (m == null) {
             throw new IllegalArgumentException();
         }
-        List<Field> fields = getPrivateFields(bean.getClass());
+        List<Field> fields = getPojoFields(bean.getClass());
         Map<String, Field> mapper = new HashMap<>();
         for (Field f : fields) {
-            mapper.put(f.getName(), f);
+            mapper.putIfAbsent(f.getName(), f);
         }
         for (Map.Entry<String, Object> entry : m.entrySet()) {
             String key = entry.getKey().contains("_") ?
@@ -103,7 +123,7 @@ public class ReflectionUtil {
                     field.set(bean, new java.util.Date((long) value));
                 } else if (field.getType().equals(java.util.Date.class) && (value instanceof String)) {
                     field.set(bean, DateUtil.parse(value.toString(), "yyyy-MM-dd HH:mm:ss"));
-                } else if(field.getType().equals(Long.class) || field.getType().equals(long.class)){
+                } else if (field.getType().equals(Long.class) || field.getType().equals(long.class)) {
                     field.set(bean, Long.valueOf(value.toString()));
                 } else if (field.getType().equals(java.lang.Integer.class)) {
                     field.set(bean, Integer.valueOf(value.toString()));
@@ -113,8 +133,8 @@ public class ReflectionUtil {
                     field.set(bean, Float.valueOf(value.toString()));
                 } else if (null != childDescriptor && Collection.class.isAssignableFrom(field.getType()) && entry.getValue() != null) {
                     recursionSetChilds(entry, bean, field, childDescriptor);
-                } else if(field.getType().equals(java.lang.Integer.class) && (value instanceof Boolean)){
-                    field.set(bean, (boolean)value ? 1 : 0);
+                } else if (field.getType().equals(java.lang.Integer.class) && (value instanceof Boolean)) {
+                    field.set(bean, (boolean) value ? 1 : 0);
                 } else {
                     field.set(bean, value);
                 }
@@ -128,10 +148,11 @@ public class ReflectionUtil {
 
     /**
      * clone Map -> Bean without creating bean first!
-     * @param map   src map data
-     * @param c     src class data
+     *
+     * @param map src map data
+     * @param c   src class data
      */
-    public static <T> T cloneMapValueToBean(Map<String, Object> map, Class<T> c){
+    public static <T> T cloneMapValueToBean(Map<String, Object> map, Class<T> c) {
         try {
             T childBean = c.getConstructor().newInstance();
             cloneMapValueToBean(map, childBean);
@@ -144,12 +165,13 @@ public class ReflectionUtil {
 
     /**
      * bean attributes copy
+     *
      * @param src
      * @param dest
      */
-    public static void copyBeanProperty(Object src, Object dest){
+    public static void copyBeanProperty(Object src, Object dest) {
         Checker.checkNull(src, dest);
-        List<Field> srcFields = getPrivateFields(src.getClass());
+        List<Field> srcFields = getPojoFields(src.getClass());
         try {
             Map<String, Field> destMapperFields = new HashMap<>();
             for (Field f : getPrivateFields(dest.getClass())) {
@@ -159,14 +181,14 @@ public class ReflectionUtil {
                 String srcFieldName = srcField.getName();
                 Field destField = destMapperFields.get(srcFieldName);
                 srcField.setAccessible(true);
-                if(destField != null){
+                if (destField != null) {
                     destField.setAccessible(true);
                     if (destField.getClass().equals(srcField.getClass())) {
                         destField.set(dest, srcField.get(src));
                     }
                 }
             }
-        }catch(Exception e){
+        } catch (Exception e) {
             LOG.error("copyBeanProperty have met an exception", e);
         }
     }
