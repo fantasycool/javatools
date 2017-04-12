@@ -74,7 +74,44 @@ public class SymmetricalEncryptionUtil {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
 
+    /**
+     * encrypt data with fixed iv
+     * @param plainText
+     * @param keys
+     * @param algorithm
+     * @param iv
+     * @return
+     */
+    public static String encryptData(String plainText, byte[] keys, String algorithm, byte[] iv){
+        try {
+            IvParameterSpec ivParameterSpec = new IvParameterSpec(iv);
+            Cipher cipher = getCipher(Cipher.ENCRYPT_MODE, algorithm, keys, ivParameterSpec);
+            byte[] encryptedBytes = cipher.doFinal(plainText.getBytes());
+            return Base64.encodeBase64String(encryptedBytes);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * decrypt data with iv
+     * @param encryptedData
+     * @param keys
+     * @param algorithm
+     * @param iv
+     * @return
+     */
+    public static String decryptData(String encryptedData, byte[] keys, String algorithm, byte[] iv){
+        try{
+            byte[] encryptedBytes = Base64.decodeBase64(encryptedData);
+            IvParameterSpec ivParameterSpec = new IvParameterSpec(iv);
+            Cipher cipher = getCipher(Cipher.DECRYPT_MODE, algorithm, keys, ivParameterSpec);
+            return new String(cipher.doFinal(encryptedBytes, 0, encryptedBytes.length - 16));
+        } catch(Exception e){
+            throw new RuntimeException(e);
+        }
     }
 
     /**
