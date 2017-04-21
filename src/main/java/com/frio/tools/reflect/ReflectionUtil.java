@@ -42,12 +42,12 @@ public class ReflectionUtil {
      */
     public static List<Field> getPojoFields(Class cls) {
         List<Field> resultFields = new ArrayList<>();
-        for(Field field : cls.getDeclaredFields()){
+        for (Field field : cls.getDeclaredFields()) {
             if (Modifier.isPrivate(field.getModifiers()) || Modifier.isProtected(field.getModifiers())) {
                 resultFields.add(field);
             }
         }
-        for(Field field : cls.getSuperclass().getDeclaredFields()){
+        for (Field field : cls.getSuperclass().getDeclaredFields()) {
             if (Modifier.isPrivate(field.getModifiers()) || Modifier.isProtected(field.getModifiers())) {
                 resultFields.add(field);
             }
@@ -172,12 +172,12 @@ public class ReflectionUtil {
     public static void copyBeanProperty(Object src, Object dest) {
         Checker.checkNull(src, dest);
         List<Field> srcFields = getPojoFields(src.getClass());
-        try {
-            Map<String, Field> destMapperFields = new HashMap<>();
-            for (Field f : getPojoFields(dest.getClass())) {
-                destMapperFields.put(f.getName(), f);
-            }
-            for (Field srcField : srcFields) {
+        Map<String, Field> destMapperFields = new HashMap<>();
+        for (Field f : getPojoFields(dest.getClass())) {
+            destMapperFields.put(f.getName(), f);
+        }
+        for (Field srcField : srcFields) {
+            try {
                 String srcFieldName = srcField.getName();
                 Field destField = destMapperFields.get(srcFieldName);
                 srcField.setAccessible(true);
@@ -187,9 +187,9 @@ public class ReflectionUtil {
                         destField.set(dest, srcField.get(src));
                     }
                 }
+            } catch (Exception e) {
+                LOG.error("copyBeanProperty have met an exception", e);
             }
-        } catch (Exception e) {
-            LOG.error("copyBeanProperty have met an exception", e);
         }
     }
 
