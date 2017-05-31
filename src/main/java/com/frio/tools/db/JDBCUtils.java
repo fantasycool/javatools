@@ -125,7 +125,11 @@ public abstract class JDBCUtils {
         for (int i = 0; i < parameters.keySet().size(); i++) {
             Object v = parameters.get(parameters.keySet().toArray()[i]);
             if (v != null) {
-                sb.append(parameters.keySet().toArray()[i]).append("=").append("?");
+                String keyName = parameters.keySet().toArray()[i].toString();
+                if(keyName.equals("key")){
+                    keyName = "`" + keyName + "`";
+                }
+                sb.append(keyName).append("=").append("?");
                 args.add(v);
                 sb.append(",");
             }
@@ -689,5 +693,18 @@ public abstract class JDBCUtils {
         }
         sb.append(")");
         return sb.toString();
+    }
+
+    public static String generateListInArgs(Object[] args){
+        StringBuilder result = new StringBuilder();
+        result.append("(");
+        for(int i = 0; i < args.length; i++){
+            result.append(args[i].toString());
+            if(i < args.length - 1){
+                result.append(",");
+            }
+        }
+        result.append(")");
+        return result.toString();
     }
 }

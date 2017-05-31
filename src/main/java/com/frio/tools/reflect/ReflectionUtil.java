@@ -125,23 +125,29 @@ public class ReflectionUtil {
                     field.set(bean, DateUtil.parse(value.toString(), "yyyy-MM-dd HH:mm:ss"));
                 } else if (field.getType().equals(Long.class) || field.getType().equals(long.class)) {
                     field.set(bean, Long.valueOf(value.toString()));
+                } else if (field.getType().equals(java.lang.Integer.class) && (value instanceof Boolean)) {
+                    field.set(bean, (boolean) value ? 1 : 0);
                 } else if (field.getType().equals(java.lang.Integer.class)) {
-                    field.set(bean, Integer.valueOf(value.toString()));
+                    if(value.toString().equals("true")){
+                        field.set(bean, 1);
+                    }else if(value.toString().equals("false")){
+                        field.set(bean, 0);
+                    }else{
+                        field.set(bean, Integer.valueOf(value.toString()));
+                    }
                 } else if ((field.getType().equals(java.lang.Double.class) || field.getType().equals(double.class))) {
                     field.set(bean, Double.valueOf(value.toString()));
                 } else if (field.getType().equals(java.lang.Float.class) || field.getType().equals(float.class)) {
                     field.set(bean, Float.valueOf(value.toString()));
                 } else if (null != childDescriptor && Collection.class.isAssignableFrom(field.getType()) && entry.getValue() != null) {
                     recursionSetChilds(entry, bean, field, childDescriptor);
-                } else if (field.getType().equals(java.lang.Integer.class) && (value instanceof Boolean)) {
-                    field.set(bean, (boolean) value ? 1 : 0);
                 } else {
                     field.set(bean, value);
                 }
             } catch (IllegalAccessException e) {
-                LOG.error("set value, fieldName:[{}]", e, field.getName());
+                LOG.error("set value, fieldName:[{}]", field.getName(), e);
             } catch (Exception e) {
-                LOG.error("转型有问题, field name is:[{}]", e, field.getName());
+                LOG.error("转型有问题, field name is:[{}]", field.getName(), e);
             }
         }
     }

@@ -108,7 +108,7 @@ public class SymmetricalEncryptionUtil {
             byte[] encryptedBytes = Base64.decodeBase64(encryptedData);
             IvParameterSpec ivParameterSpec = new IvParameterSpec(iv);
             Cipher cipher = getCipher(Cipher.DECRYPT_MODE, algorithm, keys, ivParameterSpec);
-            return new String(cipher.doFinal(encryptedBytes, 0, encryptedBytes.length - 16));
+            return new String(cipher.doFinal(encryptedBytes));
         } catch(Exception e){
             throw new RuntimeException(e);
         }
