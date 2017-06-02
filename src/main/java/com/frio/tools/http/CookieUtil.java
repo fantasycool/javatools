@@ -11,7 +11,7 @@ public class CookieUtil {
         Cookie cookie = new Cookie(strs[0].split("=")[0], strs[0].split("=")[1]);
         Arrays.asList(strs).stream().forEach(d -> {
             String[] kv = d.split("=");
-            switch (kv[0]){
+            switch (kv[0].trim()){
                 case "Domain":
                     cookie.setDomain(kv[1].trim());
                     break;
